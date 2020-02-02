@@ -23,9 +23,10 @@ final class HandlerWrapper<I, O> {
     public Optional<byte[]> handle(final byte[] input) {
         try {
             final I deserializedInput = inputWriter.readValue(input);
-            final var deserializedOutput = handler.handle(deserializedInput);
 
-            return Optional.of(outputReader.writeValueAsString(deserializedOutput).getBytes());
+            final var handlerOutput = handler.handle(deserializedInput);
+
+            return Optional.of(outputReader.writeValueAsString(handlerOutput).getBytes());
         } catch (final IOException e) {
             e.printStackTrace();
             return Optional.empty();

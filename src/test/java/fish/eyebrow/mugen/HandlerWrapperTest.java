@@ -8,9 +8,10 @@ import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
-class HandlerWrapperTest {
+final class HandlerWrapperTest {
     private HandlerWrapper<TestInput, TestOutput> handlerWrapper;
 
     @BeforeEach
@@ -25,6 +26,7 @@ class HandlerWrapperTest {
 
         final var output = handlerWrapper.handle(testInput);
 
+        assertThat(output.isPresent()).isTrue();
         assertEquals(new String(output.get()), expectedOutput, true);
     }
 }

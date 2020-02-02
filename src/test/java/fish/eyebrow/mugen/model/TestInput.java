@@ -2,7 +2,7 @@ package fish.eyebrow.mugen.model;
 
 import java.util.Objects;
 
-public class TestInput {
+public final class TestInput {
     private String id;
 
     public TestInput() {}
