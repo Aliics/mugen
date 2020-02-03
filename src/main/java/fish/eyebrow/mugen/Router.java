@@ -6,6 +6,7 @@ import java.util.Map;
 public final class Router {
     private static final byte[] OK_STATUS_LINE = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n".getBytes();
     private static final byte[] INTERNAL_SERVER_ERROR = "HTTP/1.1 500 Internal Server Error".getBytes();
+    private static final byte[] NOT_FOUND = "HTTP/1.1 404 Not Found".getBytes();
     private static final byte SPACE = 0x20;
     private static final byte CARRIAGE_RETURN = 0xD;
     private static final byte NEW_LINE = 0xA;
@@ -23,21 +24,17 @@ public final class Router {
         final var uri = getUri(request);
         final var body = getBody(request);
 
-        final var handlerOutput = handlers.get(uri).handle(body);
+        final var handler = handlers.get(uri);
+        if (handler == null) {
+            return NOT_FOUND;
+        }
+
+        final var handlerOutput = handler.handle(body);
 
         if (handlerOutput.isPresent()) {
             final var output = handlerOutput.get();
 
-            final var outputBytes = new byte[OK_STATUS_LINE.length + output.length];
-            for (int i = 0; i < outputBytes.length; i++) {
-                if (i < OK_STATUS_LINE.length) {
-                    outputBytes[i] = OK_STATUS_LINE[i];
-                } else {
-                    outputBytes[i] = output[i - OK_STATUS_LINE.length];
-                }
-            }
-
-            return outputBytes;
+            return prependWithHttpContent(output);
         } else {
             return INTERNAL_SERVER_ERROR;
         }
@@ -91,5 +88,19 @@ public final class Router {
                 request[index + 1] == NEW_LINE &&
                 request[index + 2] == CARRIAGE_RETURN &&
                 request[index + 3] == NEW_LINE;
+    }
+
+    private byte[] prependWithHttpContent(final byte[] output) {
+        final var outputBytes = new byte[OK_STATUS_LINE.length + output.length];
+
+        for (int i = 0; i < outputBytes.length; i++) {
+            if (i < OK_STATUS_LINE.length) {
+                outputBytes[i] = OK_STATUS_LINE[i];
+            } else {
+                outputBytes[i] = output[i - OK_STATUS_LINE.length];
+            }
+        }
+
+        return outputBytes;
     }
 }
