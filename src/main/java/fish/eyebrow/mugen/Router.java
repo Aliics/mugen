@@ -30,7 +30,6 @@ public final class Router {
         }
 
         final var handlerOutput = handler.handle(body);
-
         if (handlerOutput.isPresent()) {
             final var output = handlerOutput.get();
 
@@ -83,24 +82,19 @@ public final class Router {
         return body;
     }
 
+    private byte[] prependWithHttpContent(final byte[] output) {
+        final var outputBytes = new byte[OK_STATUS_LINE.length + output.length];
+
+        System.arraycopy(OK_STATUS_LINE, 0, outputBytes, 0, OK_STATUS_LINE.length);
+        System.arraycopy(output, 0, outputBytes, OK_STATUS_LINE.length, output.length);
+
+        return outputBytes;
+    }
+
     private boolean isBodyStart(final byte[] request, final int index) {
         return request[index] == CARRIAGE_RETURN &&
                 request[index + 1] == NEW_LINE &&
                 request[index + 2] == CARRIAGE_RETURN &&
                 request[index + 3] == NEW_LINE;
-    }
-
-    private byte[] prependWithHttpContent(final byte[] output) {
-        final var outputBytes = new byte[OK_STATUS_LINE.length + output.length];
-
-        for (int i = 0; i < outputBytes.length; i++) {
-            if (i < OK_STATUS_LINE.length) {
-                outputBytes[i] = OK_STATUS_LINE[i];
-            } else {
-                outputBytes[i] = output[i - OK_STATUS_LINE.length];
-            }
-        }
-
-        return outputBytes;
     }
 }
